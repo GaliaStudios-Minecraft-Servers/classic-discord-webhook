@@ -1,5 +1,4 @@
-- name: Actions for Discord
-  uses: Ilshidur/action-discord@0.3.2
+name: Discord Notification (Ilshidur)
 
 on:
   push:
