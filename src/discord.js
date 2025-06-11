@@ -46,7 +46,7 @@ module.exports.send = (id, token, repo, branch, url, commits, size, threadId) =>
 
 function createEmbed (repo, branch, url, commits, size) {
   console.log('Constructing Embed...')
-  console.log('Commits :')
+  console.log('Commitasadss :')
   const latest = commits[0]
   console.log({ latest })
   if (!latest) {
