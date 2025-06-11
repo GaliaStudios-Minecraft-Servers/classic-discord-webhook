@@ -34,7 +34,7 @@ module.exports.send = (id, token, repo, branch, url, commits, size, threadId) =>
             embeds: [createEmbed(repo, branch, url, commits, size)]
           })
           .then(() => {
-            console.log('Successfully sent the message!')
+            console.log('Successfully sent the message!sssaa')
             resolve()
           }, reject)
       }
