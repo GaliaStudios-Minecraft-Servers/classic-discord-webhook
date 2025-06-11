@@ -19,31 +19,29 @@ jobs:
           FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
           FORMATTED=""
           for FILE in $FILES; do
-            FORMATTED="${FORMATTED}+ ${FILE}\n"
+            FORMATTED="${FORMATTED}+ ${FILE}\\n"
           done
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$FORMATTED" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "files=$FORMATTED" >> $GITHUB_ENV
 
       - name: Send webhook with curl
         run: |
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d '{
-            "username": "BetterGithub",
-            "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
-            "embeds": [
+          -d "{
+            \"username\": \"BetterGithub\",
+            \"avatar_url\": \"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png\",
+            \"embeds\": [
               {
-                "title": "📦 Commit agregado a `main`",
-                "description": "[`${{ github.event.head_commit.message }}`](${{ github.event.head_commit.url }}) - ${{ github.actor }}",
-                "color": 15844367,
-                "fields": [
+                \"title\": \"📦 Commit agregado a \`main\`\",
+                \"description\": \"[\`${{ github.event.head_commit.message }}\`](${{ github.event.head_commit.url }}) - ${{ github.actor }}\",
+                \"color\": 15844367,
+                \"fields\": [
                   {
-                    "name": "Archivos modificados",
-                    "value": "```diff\n${{ steps.changes.outputs.files }}```"
+                    \"name\": \"Archivos modificados\",
+                    \"value\": \"\`\`\`diff\n${{ env.files }}\`\`\`\"
                   }
                 ],
-                "timestamp": "${{ github.event.head_commit.timestamp }}"
+                \"timestamp\": \"${{ github.event.head_commit.timestamp }}\"
               }
             ]
-          }' ${{ secrets.DISCORD_WEBHOOK_URL }}
+          }" ${{ secrets.DISCORD_WEBHOOK_URL }}
