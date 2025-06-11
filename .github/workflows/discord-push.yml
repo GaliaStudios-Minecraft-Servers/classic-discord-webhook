@@ -1,24 +1,57 @@
 name: Discord Webhook
+
 on: [push]
+
 jobs:
   Discord_notification:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed
+        run: |
+          FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
+          FORMATTED=""
+          for FILE in $FILES; do
+            FORMATTED="${FORMATTED}+ ${FILE}\n"
+          done
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FORMATTED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Run Discord Webhook
         uses: mrrobotdotapp/classic-discord-webhook@main
         with:
           id: ${{ secrets.DISCORD_WEBHOOK_ID }}
           token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          #threadId: ${{ secrets.DISCORD_WEBHOOK_THREAD_ID }} # Optional
+          json: |
+            {
+              "username": "BetterGithub",
+              "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+              "embeds": [
+                {
+                  "title": "GSLibrary - main (1 new commit)",
+                  "description": "[`${{ github.event.head_commit.message }}`](${{ github.event.head_commit.url }}) - ${{ github.actor }}",
+                  "color": 7506394,
+                  "fields": [
+                    {
+                      "name": "Files changed",
+                      "value": "```diff\n${{ steps.changed.outputs.files }}```"
+                    }
+                  ],
+                  "timestamp": "${{ github.event.head_commit.timestamp }}"
+                }
+              ]
+            }
+
   CI:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [20.x]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
