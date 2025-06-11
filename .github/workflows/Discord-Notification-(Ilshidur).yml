@@ -26,7 +26,10 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send to Discord
+        #uses: Ilshidur/action-discord@master
         uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           args: >
