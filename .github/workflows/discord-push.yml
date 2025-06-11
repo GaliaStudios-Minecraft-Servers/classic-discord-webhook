@@ -33,7 +33,7 @@ jobs:
               "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
               "embeds": [
                 {
-                  "title": "GSLibrary - main (1 new commit)",
+                  "title": "testing - main (1 new commit)",
                   "description": "[`${{ github.event.head_commit.message }}`](${{ github.event.head_commit.url }}) - ${{ github.actor }}",
                   "color": 7506394,
                   "fields": [
