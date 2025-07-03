@@ -1,45 +1,52 @@
-name: Discord Webhook
+name: Discord Webhook & CI
 
 on: [push]
 
 jobs:
+  # TRABAJO 1: Enviar la notificación a Discord
   Discord_notification:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
+        # Usamos fetch-depth: 0 para obtener el historial necesario para el diff
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Get changed files
-        id: changed
+      - name: Prepare file changes for diff
+        id: changed_files
         run: |
-          FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
-          FORMATTED=""
-          for FILE in $FILES; do
-            FORMATTED="${FORMATTED}+ ${FILE}\n"
-          done
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$FORMATTED" >> $GITHUB_OUTPUT
+          # Compara los cambios entre el estado ANTES y DESPUÉS del push
+          # Esto funciona correctamente incluso con múltiples commits en un solo push
+          FILE_CHANGES=$(git diff --name-status ${{ github.event.before }} ${{ github.event.after }} | awk '{print "+ " $2}')
+          # Necesitamos escapar los caracteres especiales para el JSON
+          FILE_CHANGES="${FILE_CHANGES//'%'/'%25'}"
+          FILE_CHANGES="${FILE_CHANGES//$'\n'/'\n'}"
+          FILE_CHANGES="${FILE_CHANGES//$'\r'/'\r'}"
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FILE_CHANGES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Run Discord Webhook
-        uses: mrrobotdotapp/classic-discord-webhook@main
+      - name: Send Discord Webhook
+        # Usamos una acción más fiable para enviar payloads de JSON
+        uses: ts-prpr/discord-webhook-action@v2
         with:
-          id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          json: |
+          # Esta acción usa la URL completa del webhook, que es más seguro y estándar
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # El parámetro clave es 'payload_json', que interpreta el string como un embed
+          payload_json: |
             {
-              "username": "BetterGithub",
+              "username": "GitHub",
               "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
               "embeds": [
                 {
-                  "title": "testing - main (1 new commit)",
-                  "description": "[`${{ github.event.head_commit.message }}`](${{ github.event.head_commit.url }}) - ${{ github.actor }}",
-                  "color": 7506394,
+                  "title": "Commit agregado a `${{ github.ref_name }}`",
+                  "description": "[`${{ github.event.head_commit.id | cut:0:7 }}`](${{ github.event.head_commit.url }}) ${{ github.event.head_commit.message }}\n- por **${{ github.actor }}**",
+                  "color": 3447003,
                   "fields": [
                     {
-                      "name": "Files changed",
-                      "value": "```diff\n${{ steps.changed.outputs.files }}```"
+                      "name": "Archivos modificados",
+                      "value": "```diff\n${{ steps.changed_files.outputs.diff }}```"
                     }
                   ],
                   "timestamp": "${{ github.event.head_commit.timestamp }}"
@@ -47,7 +54,10 @@ jobs:
               ]
             }
 
+  # TRABAJO 2: Ejecutar el CI (ahora con la indentación correcta)
   CI:
+    # Este trabajo necesita ejecutarse después de la notificación, o en paralelo.
+    # Si quieres que se ejecute después, añade: needs: Discord_notification
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -55,9 +65,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Dependencies
         run: npm install
