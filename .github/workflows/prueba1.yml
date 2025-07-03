@@ -1,0 +1,38 @@
+# .github/workflows/discord-notifier.yml
+name: Discord Push Notifier (Custom)
+
+on:
+  push:
+
+jobs:
+  notify:
+    name: Send Discord Notification
+    runs-on: ubuntu-latest
+    steps:
+      # Este paso usa una acción de la comunidad para enviar un payload JSON
+      - name: Send custom Discord notification
+        uses: ts-prpr/discord-webhook-action@v2
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # Aquí es donde construimos nuestro mensaje JSON personalizado
+          payload_json: |
+            {
+              "username": "GitHub",
+              "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+              "embeds": [
+                {
+                  "author": {
+                    "name": "${{ github.actor }}",
+                    "url": "https://github.com/${{ github.actor }}",
+                    "icon_url": "https://github.com/${{ github.actor }}.png"
+                  },
+                  "title": "[${{ github.repository }}] Nuevo push en la rama `${{ github.ref_name }}`",
+                  "url": "${{ github.event.compare }}",
+                  "description": "Se ha subido 1 nuevo commit:\n**${{ github.event.head_commit.message }}**",
+                  "color": 3447003,
+                  "footer": {
+                    "text": "Notificación generada por GitHub Actions"
+                  }
+                }
+              ]
+            }
