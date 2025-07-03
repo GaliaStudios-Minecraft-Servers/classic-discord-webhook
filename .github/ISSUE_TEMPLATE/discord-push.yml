@@ -29,7 +29,7 @@ jobs:
 
       - name: Send Discord Webhook
         # Usamos una acción más fiable para enviar payloads de JSON
-        uses: ts-prpr/discord-webhook-action@v2
+        uses: mrrobotdotapp/classic-discord-webhook@main
         with:
           # Esta acción usa la URL completa del webhook, que es más seguro y estándar
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
