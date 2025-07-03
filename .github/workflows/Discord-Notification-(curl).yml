@@ -1,4 +1,4 @@
-name: Discord Notification (curl)
+name: Advanced Discord Notification
 
 on:
   push:
@@ -6,44 +6,85 @@ on:
       - main
 
 jobs:
-  notify:
+  notify-discord:
     runs-on: ubuntu-latest
     steps:
-      # PASO 1: Hacemos checkout con el historial completo
-      - name: Checkout
+      # Paso 1: Hacemos checkout del código
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      # Paso 2: Usamos actions/github-script para construir el JSON del embed
+      - name: Build Discord Embed JSON
+        id: build_embed
+        uses: actions/github-script@v7
         with:
-          # Esencial para que git diff pueda comparar commits antiguos
-          fetch-depth: 0
+          # Pasamos el payload del evento 'push' completo al script
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // --- CONFIGURACIÓN DE EMOJIS ---
+            // ¡IMPORTANTE! Reemplaza estos nombres con los que usaste en tu servidor de Discord.
+            const emojis = {
+              status: {
+                added:    '<:Building:1348393344081985667>',    // Emoji para archivos añadidos
+                modified: '<:Config:1348231530681733173>', // Emoji para archivos modificados
+                removed:  '<:Design:1348393339371655209>',  // Emoji para archivos eliminados
+              },
+              file: {
+                java: '<:Dev:1348393341385183375>', // Emoji para archivos .java
+                yml:  '<:Documentation:1348234844131430400>',  // Emoji para archivos .yml
+                xml:  '<:Like:1348235297753927742>',  // Emoji para archivos .xml
+                def:  '📄' // Emoji por defecto
+              }
+            };
+            // Para obtener el ID del emoji, escribe en Discord \:nombre_del_emoji: y te dará el formato completo.
 
-      # PASO 2: Detectamos los archivos y los preparamos para JSON
-      - name: Detect changed files
-        id: changes
-        run: |
-          # Obtenemos la lista de archivos y la formateamos con "\\n" para que JSON lo interprete como un salto de línea
-          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | sed 's#$#\\n#' | tr -d '\n')
-          echo "files=${FILES}" >> $GITHUB_OUTPUT
+            // Función para obtener el emoji correspondiente a la extensión de un archivo
+            const getFileEmoji = (filename) => {
+              const extension = filename.split('.').pop();
+              return emojis.file[extension] || emojis.file.def;
+            };
 
-      # PASO 3: Enviamos el webhook usando una variable de entorno para más seguridad
-      - name: Send webhook with curl
-        # Pasamos la salida del paso anterior a una variable de entorno
-        env:
-          MODIFIED_FILES: ${{ steps.changes.outputs.files }}
-        run: |
-          curl -H "Content-Type: application/json" \
-            -X POST \
-            -d '{
-              "username": "BetterGithub",
-              "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
-              "embeds": [{
-                "title": "📦 Commit agregado a `main`",
-                "description": "[`${{ github.event.head_commit.message }}`](${{ github.event.head_commit.url }}) - **${{ github.actor }}**",
-                "color": 15844367,
-                "fields": [{
-                  "name": "Archivos modificados",
-                  "value": "```diff\n'"$MODIFIED_FILES"'```"
-                }],
-                "timestamp": "${{ github.event.head_commit.timestamp }}"
-              }]
-            }' \
-            ${{ secrets.DISCORD_WEBHOOK_URL }}
+            const embeds = [];
+            const commits = context.payload.commits.filter(c => c.distinct);
+
+            // Iteramos sobre cada commit del push
+            for (const commit of commits) {
+              let file_changes = '';
+
+              // Añadimos los archivos de cada categoría (added, modified, removed)
+              if (commit.added.length > 0) {
+                file_changes += commit.added.map(f => `${emojis.status.added} ${getFileEmoji(f)} \`${f}\``).join('\n') + '\n';
+              }
+              if (commit.modified.length > 0) {
+                file_changes += commit.modified.map(f => `${emojis.status.modified} ${getFileEmoji(f)} \`${f}\``).join('\n') + '\n';
+              }
+              if (commit.removed.length > 0) {
+                file_changes += commit.removed.map(f => `${emojis.status.removed} ${getFileEmoji(f)} \`${f}\``).join('\n') + '\n';
+              }
+
+              // Creamos un embed para este commit
+              embeds.push({
+                author: {
+                  name: `${commit.message} - ${commit.author.name}`,
+                  url: commit.url,
+                  icon_url: context.payload.sender.avatar_url
+                },
+                description: file_changes,
+                color: 7506394 // Color de la barra lateral del embed
+              });
+            }
+
+            // Construimos el objeto final que se enviará a Discord
+            const body = {
+              content: `**${context.payload.repository.name} - ${context.ref.split('/').pop()}** (${commits.length} new commits)`,
+              embeds: embeds
+            };
+
+            return body;
+
+      # Paso 3: Enviamos el JSON generado al webhook de Discord
+      - name: Send to Discord
+        uses: ts-prpr/discord-webhook-action@v2
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          payload_json: ${{ toJSON(steps.build_embed.outputs.result) }}
