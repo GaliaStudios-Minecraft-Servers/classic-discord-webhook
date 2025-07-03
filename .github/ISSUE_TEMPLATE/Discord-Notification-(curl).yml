@@ -56,7 +56,7 @@ EOF
 
           # Eliminamos la última coma y cerramos el array de JSON
           JSON_FIELDS=$(echo "$JSON_FIELDS" | sed 's/},$/}]/')
-          
+
           # Guardamos el resultado como una salida del paso
           echo "fields=${JSON_FIELDS}" >> $GITHUB_OUTPUT
 
