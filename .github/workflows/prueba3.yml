@@ -1,4 +1,4 @@
-name: Discord Webhook (Custom Emojis)
+name: Discord Webhook (Final Corrected)
 
 on: [push]
 
@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Paso 2: Preparar Mensaje (ACTUALIZADO CON EMOJIS PERSONALIZADOS)
+      # Paso 2: Preparar Mensaje (CORREGIDO)
       - name: Prepare Discord Message
         id: prep_message
         run: |
@@ -23,34 +23,38 @@ jobs:
             COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
             DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*\\n" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
             
-            FILE_CHANGES_FORMATTED=""
+            # Capturamos toda la lista de archivos formateada en una variable
+            CHANGES_BLOCK=$(
+              git show --name-status --pretty="" "$sha" | while read -r status file; do
+                # Lógica para el emoji de ESTADO (las barras)
+                # Sustituye aquí los placeholders por los códigos de TUS emojis
+                status_emoji="<:Building:1348393344081985667>" # Modificado
+                case "$status" in
+                  A) status_emoji="<:Config:1348231530681733173>" ;;
+                  D) status_emoji=" <:Design:1348393339371655209>" ;;
+                esac
 
-            while read -r status file; do
-              # Reemplaza los placeholders con los códigos de TUS emojis
-              
-              # Lógica para el emoji de ESTADO (las barras)
-              status_emoji="<:Building:1348393344081985667>" # Modificado (por defecto)
-              case "$status" in
-                A) status_emoji="<:Config:1348231530681733173>" ;;
-                D) status_emoji="<:Design:1348393339371655209>" ;;
-              esac
+                # Lógica para el emoji de TIPO DE ARCHIVO
+                file_emoji="<:archivo_defecto:0>" # Por defecto
+                case "$file" in
+                  *.java)     file_emoji="<:Dev:1348393341385183375>" ;;
+                  *.yml)      file_emoji="<:Documentation:1348234844131430400>" ;;
+                  *.pom)      file_emoji="<:Like:1348235297753927742>" ;;
+                  *.xml)      file_emoji="<:Setup:1348231535165444116>" ;;
+                esac
 
-              # Lógica para el emoji de TIPO DE ARCHIVO
-              file_emoji="<:archivo_defecto:0>" # Emoji por defecto
-              case "$file" in
-                *.java)     file_emoji="<:Dev:1348393341385183375> " ;;
-                *.yml)      file_emoji="<:Documentation:1348234844131430400>" ;;
-                *.pom)      file_emoji="<:Like:1348235297753927742>" ;;
-                *.xml)      file_emoji="<:Setup:1348231535165444116>" ;;
-                # Añade más 'case' para otros tipos de archivo aquí
-              esac
+                # ✅ CORRECCIÓN: Usamos 'basename' para obtener solo el nombre del archivo
+                filename=$(basename "$file")
 
-              # Unimos todo: emoji de estado + emoji de archivo + nombre del archivo
-              FILE_CHANGES_FORMATTED+=$(printf "%s %s %s\\n" "$status_emoji" "$file_emoji" "$file")
-            done < <(git show --name-status --pretty="" "$sha")
+                # ✅ CORRECCIÓN: Construimos cada línea de forma individual
+                printf "%s %s %s\\n" "$status_emoji" "$file_emoji" "$filename"
+              done
+            )
 
-            if [[ -n "$FILE_CHANGES_FORMATTED" ]]; then
-              DESCRIPTION_TEXT+=$(printf "%s\\n" "$FILE_CHANGES_FORMATTED")
+            # Si hubo cambios, añadimos el bloque completo a la descripción
+            if [[ -n "$CHANGES_BLOCK" ]]; then
+              DESCRIPTION_TEXT+=$CHANGES_BLOCK
+              DESCRIPTION_TEXT+=$(printf "\\n") # Añade un espacio extra entre commits
             fi
           done
 
