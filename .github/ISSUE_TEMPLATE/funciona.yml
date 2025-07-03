@@ -1,4 +1,4 @@
-name: Discord Webhook (Custom Emojis)
+name: Discord Webhook (Final)
 
 on: [push]
 
@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Paso 2: Preparar Mensaje (ACTUALIZADO CON EMOJIS PERSONALIZADOS)
+      # Paso 2: Preparar Mensaje (CORREGIDO)
       - name: Prepare Discord Message
         id: prep_message
         run: |
@@ -26,31 +26,28 @@ jobs:
             FILE_CHANGES_FORMATTED=""
 
             while read -r status file; do
-              # Reemplaza los placeholders con los códigos de TUS emojis
-              
-              # Lógica para el emoji de ESTADO (las barras)
-              status_emoji="<:Building:1348393344081985667>" # Modificado (por defecto)
-              case "$status" in
-                A) status_emoji="<:Config:1348231530681733173>" ;;
-                D) status_emoji="<:Design:1348393339371655209>" ;;
-              esac
-
-              # Lógica para el emoji de TIPO DE ARCHIVO
-              file_emoji="<:archivo_defecto:0>" # Emoji por defecto
+              # ✅ CORRECCIÓN: Se elimina la palabra 'local'
+              file_emoji="📄"
               case "$file" in
-                *.java)     file_emoji="<:Dev:1348393341385183375> " ;;
-                *.yml)      file_emoji="<:Documentation:1348234844131430400>" ;;
-                *.pom)      file_emoji="<:Like:1348235297753927742>" ;;
-                *.xml)      file_emoji="<:Setup:1348231535165444116>" ;;
-                # Añade más 'case' para otros tipos de archivo aquí
+                *.java)         file_emoji="☕" ;;
+                *.yml|*.yaml)   file_emoji="📝" ;;
+                *.xml|*.pom)    file_emoji="⚙️" ;;
+                *.md)           file_emoji="ℹ️" ;;
+                *.png|*.jpg)    file_emoji="🖼️" ;;
               esac
 
-              # Unimos todo: emoji de estado + emoji de archivo + nombre del archivo
-              FILE_CHANGES_FORMATTED+=$(printf "%s %s %s\\n" "$status_emoji" "$file_emoji" "$file")
+              # ✅ CORRECCIÓN: Se elimina la palabra 'local'
+              diff_prefix=" "
+              case "$status" in
+                A) diff_prefix="+" ;;
+                D) diff_prefix="-" ;;
+              esac
+
+              FILE_CHANGES_FORMATTED+=$(printf "%s %s %s\\n" "$diff_prefix" "$file_emoji" "$file")
             done < <(git show --name-status --pretty="" "$sha")
 
             if [[ -n "$FILE_CHANGES_FORMATTED" ]]; then
-              DESCRIPTION_TEXT+=$(printf "%s\\n" "$FILE_CHANGES_FORMATTED")
+              DESCRIPTION_TEXT+=$(printf '```diff\n%s\n```\n' "$FILE_CHANGES_FORMATTED")
             fi
           done
 
