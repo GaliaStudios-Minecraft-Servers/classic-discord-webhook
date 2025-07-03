@@ -8,17 +8,27 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
-
     steps:
+      # PASO 1: Hacemos checkout con el historial completo
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Esencial para que git diff pueda comparar commits antiguos
+          fetch-depth: 0
 
+      # PASO 2: Detectamos los archivos y los preparamos para JSON
       - name: Detect changed files
         id: changes
         run: |
-          echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs | sed 's/ /\\n/g')" >> $GITHUB_OUTPUT
+          # Obtenemos la lista de archivos y la formateamos con "\\n" para que JSON lo interprete como un salto de línea
+          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | sed 's#$#\\n#' | tr -d '\n')
+          echo "files=${FILES}" >> $GITHUB_OUTPUT
 
+      # PASO 3: Enviamos el webhook usando una variable de entorno para más seguridad
       - name: Send webhook with curl
+        # Pasamos la salida del paso anterior a una variable de entorno
+        env:
+          MODIFIED_FILES: ${{ steps.changes.outputs.files }}
         run: |
           curl -H "Content-Type: application/json" \
             -X POST \
@@ -27,11 +37,11 @@ jobs:
               "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
               "embeds": [{
                 "title": "📦 Commit agregado a `main`",
-                "description": "[\"${{ github.event.head_commit.message }}\"](${{ github.event.head_commit.url }}) - ${{ github.actor }}",
+                "description": "[`${{ github.event.head_commit.message }}`](${{ github.event.head_commit.url }}) - **${{ github.actor }}**",
                 "color": 15844367,
                 "fields": [{
                   "name": "Archivos modificados",
-                  "value": "```diff\n${{ steps.changes.outputs.files }}```"
+                  "value": "```diff\n'"$MODIFIED_FILES"'```"
                 }],
                 "timestamp": "${{ github.event.head_commit.timestamp }}"
               }]
