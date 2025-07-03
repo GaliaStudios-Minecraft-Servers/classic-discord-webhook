@@ -66,7 +66,6 @@ jobs:
         uses: tsickert/discord-webhook@v7.0.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          thread-id: "1390288137019981875"
           username: "GitHub"
           avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
           embed-title: "📦 Push a `${{ github.ref_name }}` (${{ github.event.commits_count }} nuevos commits)"
