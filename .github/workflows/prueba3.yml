@@ -30,10 +30,10 @@ jobs:
               git show --name-status --pretty="" "$sha" | while read -r status file; do
                 # Lógica para el emoji de ESTADO (las barras)
                 # Sustituye aquí los placeholders por los códigos de TUS emojis
-                status_emoji="<:Building:1348393344081985667>" # Modificado
+                status_emoji="<:lineazul:1390281752685187112>" # Modificado
                 case "$status" in
-                  A) status_emoji="<:Config:1348231530681733173>" ;;
-                  D) status_emoji=" <:Design:1348393339371655209>" ;;
+                  A) status_emoji="<:lineaverde:1390281754400784406>" ;; #añadido
+                  D) status_emoji="<:linearoja:1390281750361542777>" ;; #eliminado
                 esac
 
                 # Lógica para el emoji de TIPO DE ARCHIVO
