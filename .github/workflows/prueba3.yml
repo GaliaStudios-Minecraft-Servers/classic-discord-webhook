@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Paso 2: Preparar Mensaje (ACTUALIZADO CON EMOJIS)
+      # Paso 2: Preparar Mensaje (CORREGIDO)
       - name: Prepare Discord Message
         id: prep_message
         run: |
@@ -23,13 +23,11 @@ jobs:
             COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
             DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*\\n" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
             
-            # Inicializamos la variable para los cambios de este commit
             FILE_CHANGES_FORMATTED=""
 
-            # Leemos cada archivo modificado línea por línea para añadir emojis
             while read -r status file; do
-              # Lógica para asignar un emoji según la extensión del archivo
-              local file_emoji="📄" # Emoji por defecto
+              # ✅ CORRECCIÓN: Se elimina la palabra 'local'
+              file_emoji="📄"
               case "$file" in
                 *.java)         file_emoji="☕" ;;
                 *.yml|*.yaml)   file_emoji="📝" ;;
@@ -38,18 +36,16 @@ jobs:
                 *.png|*.jpg)    file_emoji="🖼️" ;;
               esac
 
-              # Lógica para asignar el prefijo de diff (+, -, M)
-              local diff_prefix=" "
+              # ✅ CORRECCIÓN: Se elimina la palabra 'local'
+              diff_prefix=" "
               case "$status" in
                 A) diff_prefix="+" ;;
                 D) diff_prefix="-" ;;
               esac
 
-              # Unimos todo: prefijo para el color + emoji + nombre del archivo
               FILE_CHANGES_FORMATTED+=$(printf "%s %s %s\\n" "$diff_prefix" "$file_emoji" "$file")
             done < <(git show --name-status --pretty="" "$sha")
 
-            # Añadimos el bloque de código con los archivos y emojis
             if [[ -n "$FILE_CHANGES_FORMATTED" ]]; then
               DESCRIPTION_TEXT+=$(printf '```diff\n%s\n```\n' "$FILE_CHANGES_FORMATTED")
             fi
