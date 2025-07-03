@@ -45,11 +45,11 @@ jobs:
           avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
 
           # --- Parámetros del Embed ---
-          # Aquí está la corrección: usamos los parámetros individuales que la acción espera
           embed-title: "📦 Push a `${{ github.ref_name }}` (${{ github.event.commits_count }} nuevos commits)"
           embed-description: ${{ steps.prep_message.outputs.description }}
           embed-color: "3447003"
-          embed-timestamp: ${{ toJSON(job.started_at) }}
+          # ✅ CORRECCIÓN: Se elimina toJSON() para pasar la fecha como un string limpio
+          embed-timestamp: ${{ job.started_at }}
           
           # --- Parámetros del Autor del Embed ---
           embed-author-name: ${{ github.actor }}
