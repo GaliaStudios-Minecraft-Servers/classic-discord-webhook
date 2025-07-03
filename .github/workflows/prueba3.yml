@@ -1,4 +1,4 @@
-name: Discord Webhook (tsickert)
+name: Discord Webhook (tsickert - Corrected)
 
 on: [push]
 
@@ -6,13 +6,13 @@ jobs:
   Discord_notification:
     runs-on: ubuntu-latest
     steps:
-      # Paso 1: Checkout del repositorio con el historial completo
+      # Paso 1: Checkout (No cambia)
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Paso 2: Preparamos el contenido del mensaje de forma dinámica
+      # Paso 2: Preparar Mensaje (No cambia)
       - name: Prepare Discord Message
         id: prep_message
         run: |
@@ -35,27 +35,23 @@ jobs:
           echo "$DESCRIPTION_TEXT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # Paso 3: Enviar la notificación con la acción tsickert/discord-webhook
+      # Paso 3: Enviar Webhook (CORREGIDO)
       - name: Send Discord Webhook
         uses: tsickert/discord-webhook@v7.0.0
         with:
-          # Pasamos la URL del webhook
+          # --- Parámetros básicos ---
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          
-          # Pasamos el nombre y avatar que queremos que muestre el bot
           username: "GitHub"
           avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+
+          # --- Parámetros del Embed ---
+          # Aquí está la corrección: usamos los parámetros individuales que la acción espera
+          embed-title: "📦 Push a `${{ github.ref_name }}` (${{ github.event.commits_count }} nuevos commits)"
+          embed-description: ${{ steps.prep_message.outputs.description }}
+          embed-color: "3447003"
+          embed-timestamp: ${{ toJSON(job.started_at) }}
           
-          # El parámetro clave: pasamos el array de embeds en formato JSON
-          embed-json: |
-            [{
-              "title": "📦 Push a `${{ github.ref_name }}` (${{ github.event.commits_count }} nuevos commits)",
-              "description": "${{ steps.prep_message.outputs.description }}",
-              "color": 3447003,
-              "author": {
-                "name": "${{ github.actor }}",
-                "url": "https://github.com/${{ github.actor }}",
-                "icon_url": "https://github.com/${{ github.actor }}.png"
-              },
-              "timestamp": "${{ toJSON(job.started_at) }}"
-            }]
+          # --- Parámetros del Autor del Embed ---
+          embed-author-name: ${{ github.actor }}
+          embed-author-url: "https://github.com/${{ github.actor }}"
+          embed-author-icon-url: "https://github.com/${{ github.actor }}.png"
