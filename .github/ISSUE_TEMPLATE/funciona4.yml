@@ -1,4 +1,4 @@
-name: Discord Webhook (Final con Enlaces)
+name: Discord Webhook (Final Corrected)
 
 on: [push]
 
@@ -12,21 +12,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Paso 2: Preparar Mensaje (ACTUALIZADO CON ENLACE AL COMMIT)
+      # Paso 2: Preparar Mensaje (CORREGIDO)
       - name: Prepare Discord Message
         id: prep_message
         run: |
           COMMITS_JSON='${{ toJSON(github.event.commits) }}'
           DESCRIPTION_TEXT=""
           for sha in $(echo "$COMMITS_JSON" | jq -r '.[].id'); do
-            # Extraer datos del commit actual
             COMMIT_MESSAGE=$(git log --format=%s -n 1 "$sha")
             COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
-            COMMIT_URL=$(echo "$COMMITS_JSON" | jq -r --arg sha "$sha" '.[] | select(.id == $sha) | .url')
-
-            # ✅ CORRECCIÓN: Añadimos el enlace al mensaje del commit
-            DESCRIPTION_TEXT+=$(printf "✍️ [**%s**](%s) - *%s*" "$COMMIT_MESSAGE" "$COMMIT_URL" "$COMMIT_AUTHOR")
             
+            # ✅ CORRECCIÓN: Añadimos el mensaje del commit SIN salto de línea al final
+            DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
+            
+            # Capturamos toda la lista de archivos formateada en una variable
             CHANGES_BLOCK=$(
               git show --name-status --pretty="" "$sha" | while read -r status file; do
                 # Lógica para el emoji de ESTADO (las barras)
@@ -51,9 +50,13 @@ jobs:
               done
             )
 
+            # Si hubo cambios, añadimos un salto de línea y LUEGO el bloque de archivos
             if [[ -n "$CHANGES_BLOCK" ]]; then
+              # ✅ CORRECCIÓN: Forzamos el salto de línea ANTES de la lista de archivos
               DESCRIPTION_TEXT+=$(printf "\\n%s" "$CHANGES_BLOCK")
             fi
+
+            # Añadimos dos saltos de línea para crear un espacio antes del siguiente commit
             DESCRIPTION_TEXT+=$(printf "\\n\\n")
           done
 
