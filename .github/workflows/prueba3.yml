@@ -1,14 +1,80 @@
-name: Discord Webhook
+name: Discord Webhook Detallado
+
 on: [push]
+
 jobs:
   Discord_notification:
     runs-on: ubuntu-latest
     steps:
+      # Paso 1: Hacemos checkout del repositorio con el historial completo
+      # Es necesario para que los comandos de 'git' puedan comparar commits
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Run Discord Webhook
-        uses: mrrobotdotapp/classic-discord-webhook@main
         with:
-          id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          #threadId: ${{ secrets.DISCORD_WEBHOOK_THREAD_ID }} # Optional
+          fetch-depth: 0
+
+      # Paso 2: Preparamos el contenido del mensaje de forma dinámica
+      - name: Prepare Discord Message
+        id: prep_message
+        run: |
+          # Obtenemos la lista de commits del push en formato JSON
+          COMMITS_JSON='${{ toJSON(github.event.commits) }}'
+          
+          # Inicializamos la variable que contendrá la descripción del embed
+          DESCRIPTION_TEXT=""
+
+          # Iteramos sobre cada commit usando la herramienta 'jq'
+          for sha in $(echo "$COMMITS_JSON" | jq -r '.[].id'); do
+            # Para cada commit, obtenemos su mensaje y autor
+            COMMIT_MESSAGE=$(git log --format=%s -n 1 "$sha")
+            COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
+            
+            # Añadimos la cabecera del commit a la descripción
+            DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*\\n" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
+            
+            # Ahora, obtenemos los archivos cambiados SÓLO en este commit
+            FILE_CHANGES=$(git show --name-status --pretty="" "$sha" | awk '{
+              if ($1 == "A") { print "+ " $2 }      # Archivos Añadidos en verde
+              else if ($1 == "D") { print "- " $2 } # Archivos Borrados en rojo
+              else { print "M " $2 }                # Archivos Modificados en blanco/azul
+            }')
+
+            # Si el commit modificó archivos, los añadimos en un bloque de código
+            if [[ -n "$FILE_CHANGES" ]]; then
+              DESCRIPTION_TEXT+=$(printf '```diff\n%s\n```\n' "$FILE_CHANGES")
+            fi
+          done
+          
+          # Guardamos la descripción completa como una salida del paso
+          # Este es el método correcto para manejar texto con múltiples líneas
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION_TEXT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # Paso 3: Enviamos la notificación usando curl
+      - name: Run Discord Webhook
+        env:
+          # Pasamos la URL del webhook de forma segura como variable de entorno
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # Pasamos la descripción generada como variable de entorno
+          MESSAGE_DESCRIPTION: ${{ steps.prep_message.outputs.description }}
+        run: |
+          # Construimos el payload JSON y lo enviamos con curl
+          curl -H "Content-Type: application/json" \
+            -X POST \
+            -d '{
+              "username": "GitHub",
+              "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+              "embeds": [{
+                "title": "📦 Push a `${{ github.ref_name }}` (${{ github.event.commits_count }} nuevos commits)",
+                "description": "${{ env.MESSAGE_DESCRIPTION }}",
+                "color": 3447003,
+                "author": {
+                  "name": "${{ github.actor }}",
+                  "url": "https://github.com/${{ github.actor }}",
+                  "icon_url": "https://github.com/${{ github.actor }}.png"
+                },
+                "timestamp": "${{ toJSON(job.started_at) }}"
+              }]
+            }' \
+            "$DISCORD_WEBHOOK_URL"
