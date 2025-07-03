@@ -1,4 +1,4 @@
-name: Discord Webhook (tsickert - Corrected)
+name: Discord Webhook (Final)
 
 on: [push]
 
@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Paso 2: Preparar Mensaje (No cambia)
+      # Paso 2: Preparar Mensaje (ACTUALIZADO CON EMOJIS)
       - name: Prepare Discord Message
         id: prep_message
         run: |
@@ -22,36 +22,54 @@ jobs:
             COMMIT_MESSAGE=$(git log --format=%s -n 1 "$sha")
             COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
             DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*\\n" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
-            FILE_CHANGES=$(git show --name-status --pretty="" "$sha" | awk '{
-              if ($1 == "A") { print "+ " $2 }
-              else if ($1 == "D") { print "- " $2 }
-              else { print "M " $2 }
-            }')
-            if [[ -n "$FILE_CHANGES" ]]; then
-              DESCRIPTION_TEXT+=$(printf '```diff\n%s\n```\n' "$FILE_CHANGES")
+            
+            # Inicializamos la variable para los cambios de este commit
+            FILE_CHANGES_FORMATTED=""
+
+            # Leemos cada archivo modificado línea por línea para añadir emojis
+            while read -r status file; do
+              # Lógica para asignar un emoji según la extensión del archivo
+              local file_emoji="📄" # Emoji por defecto
+              case "$file" in
+                *.java)         file_emoji="☕" ;;
+                *.yml|*.yaml)   file_emoji="📝" ;;
+                *.xml|*.pom)    file_emoji="⚙️" ;;
+                *.md)           file_emoji="ℹ️" ;;
+                *.png|*.jpg)    file_emoji="🖼️" ;;
+              esac
+
+              # Lógica para asignar el prefijo de diff (+, -, M)
+              local diff_prefix=" "
+              case "$status" in
+                A) diff_prefix="+" ;;
+                D) diff_prefix="-" ;;
+              esac
+
+              # Unimos todo: prefijo para el color + emoji + nombre del archivo
+              FILE_CHANGES_FORMATTED+=$(printf "%s %s %s\\n" "$diff_prefix" "$file_emoji" "$file")
+            done < <(git show --name-status --pretty="" "$sha")
+
+            # Añadimos el bloque de código con los archivos y emojis
+            if [[ -n "$FILE_CHANGES_FORMATTED" ]]; then
+              DESCRIPTION_TEXT+=$(printf '```diff\n%s\n```\n' "$FILE_CHANGES_FORMATTED")
             fi
           done
+
           echo "description<<EOF" >> $GITHUB_OUTPUT
           echo "$DESCRIPTION_TEXT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # Paso 3: Enviar Webhook (CORREGIDO)
+      # Paso 3: Enviar Webhook (No cambia)
       - name: Send Discord Webhook
         uses: tsickert/discord-webhook@v7.0.0
         with:
-          # --- Parámetros básicos ---
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: "GitHub"
           avatar-url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-
-          # --- Parámetros del Embed ---
           embed-title: "📦 Push a `${{ github.ref_name }}` (${{ github.event.commits_count }} nuevos commits)"
           embed-description: ${{ steps.prep_message.outputs.description }}
           embed-color: "3447003"
-          # ✅ CORRECCIÓN: Se elimina toJSON() para pasar la fecha como un string limpio
           embed-timestamp: ${{ job.started_at }}
-          
-          # --- Parámetros del Autor del Embed ---
           embed-author-name: ${{ github.actor }}
           embed-author-url: "https://github.com/${{ github.actor }}"
           embed-author-icon-url: "https://github.com/${{ github.actor }}.png"
