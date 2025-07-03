@@ -8,65 +8,38 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+
     steps:
-      # Paso 1: Checkout con el historial completo
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      # Paso 2: Generar la descripción del embed
-      - name: Prepare Discord Description
-        id: prep_message
+      - name: Detect changed files
+        id: changes
         run: |
-          DESCRIPTION_TEXT=""
-          # Obtenemos los commits del push en formato JSON
-          COMMITS_JSON='${{ toJSON(github.event.commits) }}'
+          echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs | sed 's/ /\\n/g')" >> $GITHUB_OUTPUT
 
-          for sha in $(echo "$COMMITS_JSON" | jq -r '.[].id'); do
-            COMMIT_MESSAGE=$(git log --format=%s -n 1 "$sha")
-            COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
-            
-            # Añadimos la cabecera del commit, escapando caracteres para Markdown si es necesario
-            DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*\\n" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
-            
-            # Obtenemos los cambios en los archivos para este commit
-            FILE_CHANGES=$(git show --name-status --pretty="" "$sha" | awk '{
-              if ($1 == "A") { print "+ " $2 }
-              else if ($1 == "D") { print "- " $2 }
-              else { print "M " $2 }
-            }')
-
-            # Si hay archivos, los añadimos a un bloque de código
-            if [[ -n "$FILE_CHANGES" ]]; then
-              DESCRIPTION_TEXT+=$(printf '```diff\n%s\n```\n' "$FILE_CHANGES")
-            fi
-          done
-          
-          # La forma correcta de guardar una salida multilínea en GitHub Actions
-          echo "description<<EOF" >> $GITHUB_OUTPUT
-          echo "$DESCRIPTION_TEXT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      # Paso 3: Enviar la notificación
-      - name: Send Discord notification
+      - name: Send to Discord
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         with:
-          args: |
+          args: >
             {
-              "username": "GitHub",
+              "username": "BetterGithub",
               "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
-              "embeds": [{
-                "title": "📦 Push a `main` (${{ github.event.commits_count }} nuevos commits)",
-                "description": "${{ steps.prep_message.outputs.description }}",
-                "color": 3447003,
-                "author": {
-                  "name": "${{ github.actor }}",
-                  "url": "https://github.com/${{ github.actor }}",
-                  "icon_url": "https://github.com/${{ github.actor }}.png"
-                },
-                "timestamp": "${{ toJSON(job.started_at) }}"
-              }]
+              "embeds": [
+                {
+                  "title": "📦 Commit agregado a `main`",
+                  "description": "[`${{ github.event.head_commit.message }}`](${{ github.event.head_commit.url }}) - ${{ github.actor }}",
+                  "color": 15844367,
+                  "fields": [
+                    {
+                      "name": "Archivos modificados",
+                      "value": "```diff\n${{ steps.changes.outputs.files }}```"
+                    }
+                  ],
+                  "timestamp": "${{ github.event.head_commit.timestamp }}"
+                }
+              ]
             }
+
