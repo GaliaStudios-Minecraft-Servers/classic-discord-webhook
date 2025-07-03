@@ -15,8 +15,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Paso 2: Generar el contenido del mensaje de Discord (Este paso no cambia y es correcto)
-      - name: Prepare Discord Message
+      # Paso 2: Generar la descripción del embed
+      - name: Prepare Discord Description
         id: prep_message
         run: |
           COMMITS_JSON='${{ toJSON(github.event.commits) }}'
@@ -24,30 +24,49 @@ jobs:
           for sha in $(echo "$COMMITS_JSON" | jq -r '.[].id'); do
             COMMIT_MESSAGE=$(git log --format=%s -n 1 "$sha")
             COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
-            DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*\n" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
+            
+            # Escapamos las comillas en el mensaje para no romper el JSON
+            COMMIT_MESSAGE=$(echo "$COMMIT_MESSAGE" | sed 's/"/\\"/g')
+            
+            DESCRIPTION_TEXT+=$(printf "✍️ **%s** - *%s*\\n" "$COMMIT_MESSAGE" "$COMMIT_AUTHOR")
+            
             FILE_CHANGES=$(git show --name-status --pretty="" "$sha" | awk '{
               if ($1 == "A") { print "+ " $2 }
               else if ($1 == "D") { print "- " $2 }
               else { print "M " $2 }
             }')
+
+            # Si hay archivos, los añadimos a un bloque de código. Escapamos los backticks.
             if [[ -n "$FILE_CHANGES" ]]; then
-              DESCRIPTION_TEXT+=$(printf '```diff\n%s\n```\n' "$FILE_CHANGES")
+              # Escapamos los saltos de línea y las comillas para el bloque de código
+              FILE_CHANGES=$(echo "$FILE_CHANGES" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+              DESCRIPTION_TEXT+=$(printf "\\\`\\\`\\\`diff\\n%s\\n\\\`\\\`\\\`\\n" "$FILE_CHANGES")
             fi
           done
-          DESCRIPTION_TEXT="${DESCRIPTION_TEXT//'%'/'%25'}"
-          DESCRIPTION_TEXT="${DESCRIPTION_TEXT//$'\n'/'%0A'}"
-          DESCRIPTION_TEXT="${DESCRIPTION_TEXT//$'\r'/'%0D'}"
+          
+          # Guardamos la descripción final en la salida del paso
           echo "description=${DESCRIPTION_TEXT}" >> $GITHUB_OUTPUT
 
-      # Paso 3: Enviar la notificación usando los parámetros correctos de la acción
+      # Paso 3: Enviar la notificación usando el parámetro 'args'
       - name: Send Discord notification
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         with:
-          # Aquí está la corrección: usamos los argumentos individuales
-          title: "📦 Push a `main` (${{ github.event.commits_count }} nuevos commits)"
-          description: ${{ steps.prep_message.outputs.description }}
-          color: "3447003"
-          author: ${{ github.actor }}
-          url: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+          # Aquí está la corrección: pasamos el JSON completo a 'args'
+          args: |
+            {
+              "username": "GitHub",
+              "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+              "embeds": [{
+                "title": "📦 Push a `main` (${{ github.event.commits_count }} nuevos commits)",
+                "description": "${{ steps.prep_message.outputs.description }}",
+                "color": 3447003,
+                "author": {
+                  "name": "${{ github.actor }}",
+                  "url": "https://github.com/${{ github.actor }}",
+                  "icon_url": "https://github.com/${{ github.actor }}.png"
+                },
+                "timestamp": "${{ toJSON(job.started_at) }}"
+              }]
+            }
