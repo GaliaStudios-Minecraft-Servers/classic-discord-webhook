@@ -1,4 +1,4 @@
-name: Discord Notification (curl-detailed)
+name: Discord Notification (curl)
 
 on:
   push:
@@ -8,75 +8,31 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+
     steps:
-      # Paso 1: Checkout con el historial completo para poder hacer diffs
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      # Paso 2: Generar dinámicamente los campos para el embed de Discord
-      - name: Prepare Discord Embed Fields
-        id: prep_fields
+      - name: Detect changed files
+        id: changes
         run: |
-          # Obtenemos los commits del push en formato JSON
-          COMMITS_JSON='${{ toJSON(github.event.commits) }}'
+          echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs | sed 's/ /\\n/g')" >> $GITHUB_OUTPUT
 
-          # Empezamos a construir la cadena de texto de los campos JSON
-          JSON_FIELDS="["
-
-          # Iteramos sobre cada commit usando la herramienta 'jq'
-          for sha in $(echo "$COMMITS_JSON" | jq -r '.[].id'); do
-            # Obtenemos los detalles de cada commit
-            COMMIT_MESSAGE=$(git log --format=%s -n 1 "$sha")
-            COMMIT_AUTHOR=$(git log --format=%an -n 1 "$sha")
-
-            # Obtenemos los archivos modificados en ESE commit específico con su estado (A/M/D)
-            # y los formateamos para un bloque de código 'diff'
-            FILE_CHANGES=$(git show --name-status --pretty="" "$sha" | awk '{
-              if ($1 == "A") { print "+ " $2 }
-              else if ($1 == "D") { print "- " $2 }
-              else { print "M " $2 }
-            }')
-
-            # Escapamos caracteres especiales para que el JSON sea válido
-            COMMIT_MESSAGE=$(echo "$COMMIT_MESSAGE" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
-            FILE_CHANGES=$(echo "$FILE_CHANGES" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
-
-            # Construimos el objeto JSON para este campo y lo añadimos a nuestra cadena
-            JSON_FIELDS+=$(cat <<EOF
-            {
-              "name": "✍️ ${COMMIT_MESSAGE} - ${COMMIT_AUTHOR}",
-              "value": " \\\`\\\`\\\`diff\\n${FILE_CHANGES}\\\`\\\`\\\` ",
-              "inline": false
-            },
-EOF
-            )
-          done
-
-          # Eliminamos la última coma y cerramos el array de JSON
-          JSON_FIELDS=$(echo "$JSON_FIELDS" | sed 's/},$/}]/')
-
-          # Guardamos el resultado como una salida del paso
-          echo "fields=${JSON_FIELDS}" >> $GITHUB_OUTPUT
-
-      # Paso 3: Enviar el webhook con los campos que hemos generado
       - name: Send webhook with curl
-        env:
-          # Pasamos la cadena JSON de los campos a una variable de entorno
-          EMBED_FIELDS: ${{ steps.prep_fields.outputs.fields }}
         run: |
-          # La magia ocurre aquí: insertamos el array de campos directamente en el payload
           curl -H "Content-Type: application/json" \
             -X POST \
             -d '{
               "username": "BetterGithub",
               "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
               "embeds": [{
-                "title": "📦 Push a `main` (${{ github.event.commits_count }} nuevos commits)",
-                "description": "Cambios subidos por **${{ github.actor }}**.",
-                "color": 3447003,
-                "fields": ${{ env.EMBED_FIELDS }},
+                "title": "📦 Commit agregado a `main`",
+                "description": "[\"${{ github.event.head_commit.message }}\"](${{ github.event.head_commit.url }}) - ${{ github.actor }}",
+                "color": 15844367,
+                "fields": [{
+                  "name": "Archivos modificados",
+                  "value": "```diff\n${{ steps.changes.outputs.files }}```"
+                }],
                 "timestamp": "${{ github.event.head_commit.timestamp }}"
               }]
             }' \
