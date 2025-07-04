@@ -1,0 +1,112 @@
+<svg viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&display=swap');
+            
+            /* --- Colores --- */
+            :root {
+                --color-bg: #1d1f21;
+                --color-header: #282a2e;
+                --color-prompt: #81a2be;
+                --color-title: #b5bd68;
+                --color-key: #b294bb;
+                --color-text: #c5c8c6;
+                --color-btn-bracket: #8abeb7;
+                --color-btn-text: #c5c8c6;
+                --color-btn-bracket-hover: #b5bd68;
+                --color-btn-text-hover: #b5bd68;
+            }
+
+            .container {
+                font-family: 'Fira Code', monospace;
+                font-size: 16px; /* Ligeramente más grande para legibilidad */
+                line-height: 1.8;
+            }
+
+            /* --- Animaciones --- */
+            @keyframes typing { from { width: 0; } to { width: 100%; } }
+            @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+            @keyframes fadeIn { to { opacity: 1; } }
+            
+            .fade-in { opacity: 0; animation: fadeIn 0.5s forwards; }
+
+            /* --- Secuencia de Animación --- */
+            .line-1 { animation-delay: 0.5s; }
+            .line-2 { animation-delay: 1.0s; }
+            .line-3 { animation-delay: 1.5s; }
+            .line-4 { animation-delay: 2.0s; }
+            .line-5 { animation-delay: 2.5s; }
+            .menu-prompt { animation-delay: 3.0s; }
+            .menu-item-1 { animation-delay: 3.3s; }
+            .menu-item-2 { animation-delay: 3.6s; }
+            .menu-item-3 { animation-delay: 3.9s; }
+            .cursor-final { animation-delay: 4.2s; }
+
+            /* --- Estilos de Botones CLI --- */
+            .menu-link { cursor: pointer; text-decoration: none; }
+            .btn-bracket { fill: var(--color-btn-bracket); transition: fill 0.2s ease; }
+            .btn-text { fill: var(--color-btn-text); font-weight: 500; transition: fill 0.2s ease; }
+            .menu-link:hover .btn-bracket, .menu-link:hover .btn-text {
+                fill: var(--color-btn-text-hover);
+            }
+
+            .cursor { fill: var(--color-prompt); animation: blink 1.2s infinite; }
+            
+        </style>
+    </defs>
+
+    <rect x="0" y="0" width="800" height="520" rx="10" ry="10" fill="var(--color-bg)"/>
+    <rect x="0" y="0" width="800" height="35" rx="10" ry="10" fill="var(--color-header)"/>
+    <circle cx="25" cy="18" r="7" fill="#ff5f56"/><circle cx="50" cy="18" r="7" fill="#ffbd2e"/><circle cx="75" cy="18" r="7" fill="#27c93f"/>
+
+    <g class="container" transform="translate(0, 70)">
+        
+        <text x="50%" y="0" text-anchor="middle" class="fade-in line-1" font-size="22" fill="var(--color-title)">
+            &gt; [TU_NOMBRE]'s Terminal
+        </text>
+
+        <text x="50%" y="60" text-anchor="middle" class="fade-in line-2">
+            <tspan fill="var(--color-key)">LANGS:</tspan>
+            <tspan fill="var(--color-text)"> Python, JavaScript, SQL, TypeScript</tspan>
+        </text>
+        <text x="50%" y="95" text-anchor="middle" class="fade-in line-3">
+            <tspan fill="var(--color-key)">TOOLS:</tspan>
+            <tspan fill="var(--color-text)"> Docker, Git, AWS, Terraform</tspan>
+        </text>
+        <text x="50%" y="130" text-anchor="middle" class="fade-in line-4">
+            <tspan fill="var(--color-key)">FOCUS:</tspan>
+            <tspan fill="var(--color-text)"> Backend Development, Cloud Infrastructure</tspan>
+        </text>
+        <text x="50%" y="165" text-anchor="middle" class="fade-in line-5">
+            <tspan fill="var(--color-key)">EDITOR:</tspan>
+            <tspan fill="var(--color-text)"> VSCode + Neovim</tspan>
+        </text>
+
+        <text x="50%" y="240" text-anchor="middle" class="fade-in menu-prompt" fill="var(--color-prompt)">
+            Selecciona una opción para saber más:
+        </text>
+        
+        <g transform="translate(0, 280)">
+             <a xlink:href="https://github.com/TU_USUARIO?tab=repositories" target="_blank" class="menu-link fade-in menu-item-1">
+                <text x="50%" y="0" text-anchor="middle" class="btn-text">
+                    <tspan class="btn-bracket">[</tspan> Proyectos <tspan class="btn-bracket">]</tspan>
+                </text>
+             </a>
+             <a xlink:href="https://linkedin.com/in/TU_USUARIO" target="_blank" class="menu-link fade-in menu-item-2">
+                <text x="50%" y="40" text-anchor="middle" class="btn-text">
+                    <tspan class="btn-bracket">[</tspan> LinkedIn <tspan class="btn-bracket">]</tspan>
+                </text>
+             </a>
+             <a xlink:href="https://TU_SITIO_WEB.com" target="_blank" class="menu-link fade-in menu-item-3">
+                <text x="50%" y="80" text-anchor="middle" class="btn-text">
+                    <tspan class="btn-bracket">[</tspan> Sitio Web <tspan class="btn-bracket">]</tspan>
+                </text>
+             </a>
+        </g>
+
+        <g class="fade-in cursor-final" transform="translate(385, 410)">
+             <text y="0" fill="var(--color-prompt)">$</text>
+             <rect class="cursor" x="15" y="-14" width="10" height="18"/>
+        </g>
+    </g>
+</svg>

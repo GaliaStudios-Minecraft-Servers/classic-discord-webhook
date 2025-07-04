@@ -1,99 +1,113 @@
-<svg width="850" height="220" viewBox="0 0 850 220" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="800" height="420" viewBox="0 0 800 420" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&display=swap');
             
-            .background {
-                fill: url(#gradiente-animado);
-                stroke: #e2e8f0; /* Borde sutil */
-                stroke-width: 2;
+            /* --- Colores --- */
+            :root {
+                --color-bg: #1d1f21;
+                --color-header: #282a2e;
+                --color-prompt: #c5c8c6;
+                --color-cmd: #81a2be;
+                --color-ascii: #b294bb; /* Color para el arte ASCII */
+                --color-title: #b5bd68; /* Color para los títulos (USER, OS, etc.) */
+                --color-text: #c5c8c6; /* Color para el texto normal */
+                --color-btn-bracket: #8abeb7;
+                --color-btn-text: #c5c8c6;
+                --color-btn-bracket-hover: #b5bd68;
+                --color-btn-text-hover: #b5bd68;
+            }
+
+            .container {
+                font-family: 'Fira Code', monospace;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            /* --- Animaciones --- */
+            @keyframes typing { from { width: 0; } to { width: 100%; } }
+            @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+            @keyframes fadeIn { to { opacity: 1; } }
+            
+            /* --- Estilos de la Terminal --- */
+            .linea-comando {
+                animation: typing 2s steps(22, end);
+                white-space: pre;
+                overflow: hidden;
+                width: 100%;
             }
             
-            .titulo {
-                font-family: 'Roboto', sans-serif;
-                font-weight: 700;
-                font-size: 38px;
-                fill: #2d3748; /* Color de texto oscuro */
-                text-anchor: middle;
-            }
+            /* Animación para cada línea de info */
+            .fade-in { opacity: 0; animation: fadeIn 0.5s forwards; }
+            .info-line-1 { animation-delay: 2.2s; }
+            .info-line-2 { animation-delay: 2.4s; }
+            .info-line-3 { animation-delay: 2.6s; }
+            .info-line-4 { animation-delay: 2.8s; }
+            .info-line-5 { animation-delay: 3.0s; }
+            .info-line-6 { animation-delay: 3.2s; }
+            .menu-prompt { animation-delay: 3.6s; }
+            .menu-item { animation-delay: 3.8s; }
+            .cursor-final { animation-delay: 4.2s; }
 
-            .subtitulo {
-                font-family: 'Roboto', sans-serif;
-                font-weight: 400;
-                font-size: 22px;
-                fill: #4a5568; /* Color de texto secundario */
-                text-anchor: middle;
-            }
+            /* --- Estilos de Botones CLI --- */
+            .menu-link { cursor: pointer; }
+            .btn-bracket { fill: var(--color-btn-bracket); transition: fill 0.2s ease; }
+            .btn-text { fill: var(--color-btn-text); font-weight: 500; transition: fill 0.2s ease; }
+            .menu-link:hover .btn-bracket { fill: var(--color-btn-bracket-hover); }
+            .menu-link:hover .btn-text { fill: var(--color-btn-text-hover); }
 
-            /* Animación del Gradiente de Fondo */
-            @keyframes moverGradiente {
-                0% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
-            }
-            .gradiente-animado {
-                background: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #bae6fd, #7dd3fc);
-                background-size: 400% 400%;
-                animation: moverGradiente 15s ease infinite;
-            }
-            #gradiente-animado {
-                --color-uno: #f0f9ff; /* Azul cielo muy claro */
-                --color-dos: #e0f2fe; /* Azul cielo claro */
-                --color-tres: #cffafe; /* Cian claro */
-            }
-
-            /* Estilos de Iconos Interactivos */
-            .icono-link {
-                fill: #4a5568; /* Color base del icono */
-                opacity: 0.8;
-                transition: transform 0.3s ease, opacity 0.3s ease;
-            }
-            .icono-link:hover {
-                transform: translateY(-4px); /* Efecto de levantar */
-                opacity: 1;
-                cursor: pointer;
-            }
+            .cursor { fill: var(--color-prompt); animation: blink 1.2s infinite; }
+            
         </style>
-
-        <linearGradient id="gradiente-animado" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="var(--color-uno)">
-                <animate attributeName="stop-color" values="var(--color-uno); var(--color-dos); var(--color-tres); var(--color-uno)" dur="15s" repeatCount="indefinite"></animate>
-            </stop>
-            <stop offset="100%" stop-color="var(--color-tres)">
-                <animate attributeName="stop-color" values="var(--color-tres); var(--color-dos); var(--color-uno); var(--color-tres)" dur="15s" repeatCount="indefinite"></animate>
-            </stop>
-        </linearGradient>
-
     </defs>
 
-    <rect x="1" y="1" rx="10" ry="10" width="848" height="218" class="background"/>
+    <rect x="0" y="0" width="800" height="420" rx="10" ry="10" fill="var(--color-bg)"/>
+    <rect x="0" y="0" width="800" height="30" rx="10" ry="10" fill="var(--color-header)"/>
+    <circle cx="25" cy="15" r="6" fill="#ff5f56"/><circle cx="45" cy="15" r="6" fill="#ffbd2e"/><circle cx="65" cy="15" r="6" fill="#27c93f"/>
 
-    <g transform="translate(425, 80)">
-        <text class="titulo" y="0">
-            AQUÍ VA TU NOMBRE
+    <g class="container">
+        <text x="20" y="65" fill="var(--color-prompt)">
+            $ <tspan class="linea-comando" fill="var(--color-cmd)">./fetch-info.sh</tspan>
         </text>
-        <text class="subtitulo" y="35">
-            Desarrollador de Software | Entusiasta de la IA
-        </text>
-    </g>
 
-    <g id="iconos" transform="translate(335, 140)">
-        <a xlink:href="https://github.com/TU_USUARIO" target="_blank" class="icono-link">
-            <g transform="translate(0, 0)">
-                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+        <g transform="translate(20, 95)">
+            <text x="0" y="15" class="fade-in info-line-1" fill="var(--color-ascii)" style="white-space: pre;">
+██████╗ ██╗   ██╗
+██╔══██╗╚██╗ ██╔╝
+██████╔╝ ╚████╔╝ 
+██╔═══╝   ╚██╔╝  
+██║        ██║   
+╚═╝        ╚═╝   
+            </text>
+            
+            <g transform="translate(150, 0)">
+                <text class="fade-in info-line-1" y="15" fill="var(--color-title)">[TU_NOMBRE]@[github]</text>
+                <text class="fade-in info-line-1" y="30" fill="var(--color-text)">--------------------------</text>
+                <text class="fade-in info-line-2" y="55" fill="var(--color-title)">OS:       <tspan fill="var(--color-text)">Web-based (HTML, CSS, JS)</tspan></text>
+                <text class="fade-in info-line-3" y="75" fill="var(--color-title)">LANGS:    <tspan fill="var(--color-text)">Python, JavaScript, SQL</tspan></text>
+                <text class="fade-in info-line-4" y="95" fill="var(--color-title)">FOCUS:    <tspan fill="var(--color-text)">Backend, Data Science, IA</tspan></text>
+                <text class="fade-in info-line-5" y="115" fill="var(--color-title)">EDITOR:   <tspan fill="var(--color-text)">VSCode</tspan></text>
+                <text class="fade-in info-line-6" y="135" fill="var(--color-title)">SHELL:    <tspan fill="var(--color-text)">zsh (sometimes bash)</tspan></text>
             </g>
-        </a>
+        </g>
+        
+        <text x="20" y="290" class="fade-in menu-prompt" fill="var(--color-prompt)">Selecciona una opción para saber más:</text>
+        
+        <g class="fade-in menu-item" transform="translate(20, 315)">
+             <a xlink:href="https://github.com/TU_USUARIO?tab=repositories" target="_blank" class="menu-link">
+                <text y="0" class="btn-text"><tspan class="btn-bracket">[</tspan> Proyectos <tspan class="btn-bracket">]</tspan></text>
+             </a>
+             <a xlink:href="https://linkedin.com/in/TU_USUARIO" target="_blank" class="menu-link">
+                <text x="150" y="0" class="btn-text"><tspan class="btn-bracket">[</tspan> LinkedIn <tspan class="btn-bracket">]</tspan></text>
+             </a>
+             <a xlink:href="https://TU_SITIO_WEB.com" target="_blank" class="menu-link">
+                <text x="300" y="0" class="btn-text"><tspan class="btn-bracket">[</tspan> Sitio Web <tspan class="btn-bracket">]</tspan></text>
+             </a>
+        </g>
 
-        <a xlink:href="https://linkedin.com/in/TU_USUARIO" target="_blank" class="icono-link">
-            <g transform="translate(60, 0)">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/>
-            </g>
-        </a>
-
-        <a xlink:href="https://TU_SITIO_WEB.com" target="_blank" class="icono-link">
-            <g transform="translate(120, 0)">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.06 21.492c-2.348-.344-4.24-1.33-4.24-1.33s.385.836 1.125 1.96c.712 1.09 1.485 1.83 1.485 1.83s1.28-2.234 1.63-4.46zM12 2.04c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5S10.5 4.368 10.5 3.54c0-.828.672-1.5 1.5-1.5zm6.953 16.974c.488-1.22.785-2.33.785-2.33s-1.875.48-4.078.61c-2.203.13-4.688-.04-4.688-.04s.488 2.37.938 3.51c.45 1.14 1.05 2.15 1.05 2.15s3.473-2.8 5.992-3.9zM19.74 7.23c-.34.33-.703.62-1.078.86-.375.24-.75.45-1.125.61-.375.16-1.5.54-1.5.54s-.375-1.02-.656-1.63c-.281-.61-.516-1.12-.516-1.12s1.875-.54 3.094-1.23c1.219-.69 2.062-1.36 2.062-1.36s-.885 2.96-.281 4.33zM4.26 7.23c.604-1.37 1.781-3.64 1.781-3.64s.844.67 2.062 1.36c1.22.69 3.094 1.23 3.094 1.23s-.234.51-.516 1.12c-.281.61-.656 1.63-.656 1.63s-1.125-.38-1.5-.54c-.375-.16-.75-.37-1.125-.61-.375-.24-.738-.53-1.078-.86z"/>
-            </g>
-        </a>
+        <g class="fade-in cursor-final" transform="translate(20, 360)">
+             <text y="0" fill="var(--color-prompt)">$</text>
+             <rect class="cursor" x="12" y="-12" width="8" height="15"/>
+        </g>
     </g>
 </svg>
