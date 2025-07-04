@@ -1,0 +1,80 @@
+<svg width="800" height="240" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&display=swap');
+            
+            /* --- Personaliza los colores aquí --- */
+            :root {
+                --color-bg: #1d1f21;         /* Color de fondo de la terminal */
+                --color-header: #282a2e;     /* Color de la barra de título */
+                --color-text-prompt: #c5c8c6; /* Color del prompt '$' y texto base */
+                --color-text-cmd: #81a2be;    /* Color del comando que se "escribe" */
+                --color-text-output: #b5bd68; /* Color del texto de salida */
+            }
+
+            .container {
+                font-family: 'Fira Code', monospace;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            /* --- Animación del cursor parpadeante --- */
+            @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+            }
+            .cursor {
+                fill: var(--color-text-prompt);
+                animation: blink 1.2s infinite;
+            }
+
+            /* --- Animación de escritura --- */
+            /* La animación de escritura se controla con el ancho (width) del texto */
+            @keyframes typing {
+                from { width: 0; }
+                to { width: 100%; }
+            }
+            
+            .linea-comando {
+                /* Pasos = número de caracteres + 1 */
+                animation: typing 2s steps(22, end);
+                white-space: pre;
+                overflow: hidden;
+                width: 100%;
+            }
+            
+            .linea-salida {
+                opacity: 0;
+                animation: fadeIn 0.5s 2s forwards; /* Aparece después de que termina la escritura */
+                white-space: pre;
+            }
+
+            @keyframes fadeIn {
+                to { opacity: 1; }
+            }
+            
+        </style>
+    </defs>
+
+    <rect x="0" y="0" width="800" height="240" rx="10" ry="10" fill="var(--color-bg)"/>
+    <rect x="0" y="0" width="800" height="30" rx="10" ry="10" fill="var(--color-header)"/>
+
+    <circle cx="25" cy="15" r="6" fill="#ff5f56"/>
+    <circle cx="45" cy="15" r="6" fill="#ffbd2e"/>
+    <circle cx="65" cy="15" r="6" fill="#27c93f"/>
+
+    <g class="container">
+        <text x="20" y="65" fill="var(--color-text-prompt)">
+            $ <tspan class="linea-comando" fill="var(--color-text-cmd)">./bienvenida.sh</tspan>
+        </text>
+
+        <text class="linea-salida" x="20" y="95" fill="var(--color-text-output)">
+            ¡Hola! 👋 Soy [TU NOMBRE]. Bienvenido a mi perfil.
+        </text>
+        
+        <g class="linea-salida" transform="translate(0, 50)">
+             <text x="20" y="95" fill="var(--color-text-prompt)">$</text>
+             <rect class="cursor" x="32" y="83" width="8" height="15"/>
+        </g>
+    </g>
+</svg>
