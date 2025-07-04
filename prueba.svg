@@ -1,7 +1,6 @@
 <svg viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs>
         <style>
-            /* CORRECCIÓN AQUÍ: Se reemplazó el '&' por '&amp;' para evitar errores de XML */
             @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&amp;display=swap');
             
             /* --- Colores --- */
