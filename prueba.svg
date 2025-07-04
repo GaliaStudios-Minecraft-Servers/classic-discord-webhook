@@ -1,7 +1,8 @@
 <svg viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&display=swap');
+            /* CORRECCIÓN AQUÍ: Se reemplazó el '&' por '&amp;' para evitar errores de XML */
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&amp;display=swap');
             
             /* --- Colores --- */
             :root {
@@ -19,7 +20,7 @@
 
             .container {
                 font-family: 'Fira Code', monospace;
-                font-size: 16px; /* Ligeramente m�s grande para legibilidad */
+                font-size: 16px; /* Ligeramente más grande para legibilidad */
                 line-height: 1.8;
             }
 
@@ -30,7 +31,7 @@
             
             .fade-in { opacity: 0; animation: fadeIn 0.5s forwards; }
 
-            /* --- Secuencia de Animaci�n --- */
+            /* --- Secuencia de Animación --- */
             .line-1 { animation-delay: 0.5s; }
             .line-2 { animation-delay: 1.0s; }
             .line-3 { animation-delay: 1.5s; }
@@ -83,7 +84,7 @@
         </text>
 
         <text x="50%" y="240" text-anchor="middle" class="fade-in menu-prompt" fill="var(--color-prompt)">
-            Selecciona una opci�n para saber m�s:
+            Selecciona una opción para saber más:
         </text>
         
         <g transform="translate(0, 280)">
