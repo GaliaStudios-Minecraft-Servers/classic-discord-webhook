@@ -1,1 +1,1 @@
-![Mi Terminal Animada](./terminal-animada.svg)
+![Mi Terminal Animada](./cabecera-interactiva.svg)
